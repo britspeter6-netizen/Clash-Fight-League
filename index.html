@@ -110,6 +110,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:68px;
 .ev-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;}
 .ev-meta{color:var(--grey);font-size:0.9rem;line-height:1.7;font-weight:500;}
 .ev-meta a{color:var(--blue);text-decoration:none;}
+.ev-btns{display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
 
 .insta-block{background:rgba(24,26,30,0.82);backdrop-filter:blur(8px);border:1px solid var(--dark3);padding:32px;display:flex;align-items:center;gap:32px;transition:border-color 0.2s;cursor:pointer;}
 .insta-block:hover{border-color:rgba(59,143,196,0.3);}
@@ -282,6 +283,9 @@ footer{background:rgba(13,14,16,0.88);backdrop-filter:blur(16px);border-top:1px 
   .hero-btns{flex-direction:column!important;align-items:stretch!important;width:100%;max-width:320px;margin:0 auto;}
   .hero-btns .btn-ghost{display:none!important;}
   .hero-btns .btn-blue{width:100%!important;text-align:center!important;display:block!important;}
+  .ev-btns{align-items:stretch!important;width:100%;}
+  .ev-btns .btn-ghost{display:none!important;}
+  .ev-btns .btn-blue{width:100%!important;text-align:center!important;display:block!important;}
   .btn{padding:14px 28px;font-size:0.9rem;}
 
   /* Fight card */
@@ -464,9 +468,8 @@ footer{background:rgba(13,14,16,0.88);backdrop-filter:blur(16px);border-top:1px 
           <i class="fas fa-ticket" style="color:var(--blue);margin-right:6px;"></i>Standing R150 · Seated R200
         </div>
       </div>
-      <div>
+      <div class="ev-btns">
         <button class="btn btn-blue" data-action="show-page" data-page="tickets">GET TICKETS</button>
-        <br><br>
         <button class="btn btn-ghost" data-action="show-page" data-page="fightcard">FIGHT CARD</button>
       </div>
     </div>
