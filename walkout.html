@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLASH Fight League — Enter The Cage</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; overflow: hidden; font-family: "Barlow Condensed", sans-serif; }
+#canvas-container { width: 100vw; height: 100vh; }
+canvas { display: block; }
+
+#hud {
+  position: fixed; inset: 0; pointer-events: none; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  padding-bottom: 52px;
+}
+#step-prompt {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.85rem; letter-spacing: 5px; text-transform: uppercase;
+  color: rgba(59,143,196,0.85);
+  animation: pulse 2s ease-in-out infinite;
+  transition: opacity 0.5s;
+}
+@keyframes pulse { 0%,100%{opacity:0.35} 50%{opacity:1} }
+
+#stage-label {
+  position: fixed; top: 40px; left: 50%; transform: translateX(-50%);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 6px; color: rgba(255,255,255,0.18);
+  text-align: center; pointer-events: none; z-index: 10;
+  transition: opacity 0.8s;
+}
+
+#progress-bar {
+  position: fixed; bottom: 0; left: 0;
+  height: 2px; background: #3b8fc4;
+  width: 0%; transition: width 0.6s ease;
+  z-index: 10; box-shadow: 0 0 10px rgba(59,143,196,0.7);
+}
+
+.ripple {
+  position: fixed; width: 60px; height: 60px;
+  border: 2px solid rgba(59,143,196,0.6); border-radius: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  animation: ripple-out 0.6s ease-out forwards;
+  pointer-events: none; z-index: 20;
+}
+@keyframes ripple-out { to { transform: translate(-50%,-50%) scale(2.5); opacity: 0; } }
+
+#site-overlay {
+  position: fixed; inset: 0; background: #080809;
+  z-index: 100; opacity: 0; pointer-events: none;
+  transition: opacity 1.5s ease;
+}
+#site-overlay.fade-in { opacity: 1; pointer-events: all; }
+
+#enter-site-btn {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.5rem; letter-spacing: 6px;
+  background: #3b8fc4; color: white;
+  border: none; padding: 20px 60px;
+  cursor: pointer; z-index: 101;
+  opacity: 0; transition: opacity 1s 0.5s;
+  box-shadow: 0 0 40px rgba(59,143,196,0.5);
+}
+#enter-site-btn.show { opacity: 1; }
+#enter-site-btn:hover { background: #55aadf; }
+
+#cage-text {
+  position: fixed; top: calc(50% - 80px); left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(2rem,8vw,5rem);
+  letter-spacing: 10px; color: white;
+  z-index: 101; opacity: 0; transition: opacity 1s;
+  text-align: center;
+}
+#cage-text.show { opacity: 1; }
+
+#skip-btn {
+  position: fixed; top: 24px; right: 24px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(255,255,255,0.3); background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 18px; cursor: pointer; z-index: 50;
+  transition: all 0.2s;
+}
+#skip-btn:hover { color: white; border-color: rgba(59,143,196,0.5); }
+
+/* Vignette overlay */
+#vignette {
+  position: fixed; inset: 0; z-index: 5; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.75) 100%);
+}
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+<div id="vignette"></div>
+
+<div id="hud">
+  <div id="step-prompt">CLICK TO STEP FORWARD</div>
+</div>
+
+<div id="stage-label">THE WALKOUT</div>
+<div id="progress-bar"></div>
+<button id="skip-btn">SKIP &rarr;</button>
+
+<div id="site-overlay"></div>
+<div id="cage-text">YOU'RE IN THE CAGE</div>
+<button id="enter-site-btn" onclick="enterSite()">ENTER CLASH FIGHT LEAGUE</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+// CLASH FIGHT LEAGUE — 3D WALKOUT  (photo-textured)
+// Corridor walls/floor/ceiling = corridor-bg.jpg
+// Octagon cage = Three.js geometry at tunnel end
+// ═══════════════════════════════════════════════════
+
+const BLUE     = 0x3b8fc4;
+const BLUE_EMI = new THREE.Color(0x3b8fc4);
+
+// ── SCENE ──
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000000, 0.028);
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 200);
+camera.position.set(0, 1.7, 28);
+camera.lookAt(0, 1.5, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.getElementById("canvas-container").appendChild(renderer.domElement);
+
+// ── TEXTURE LOADER ──
+const loader = new THREE.TextureLoader();
+
+// Load corridor photo — used on all tunnel surfaces
+const corridorTex = loader.load(
+  "assets/images/corridor-bg.jpg",
+  () => { console.log("Corridor texture loaded"); },
+  undefined,
+  (err) => { console.warn("Texture load failed, using fallback colour", err); }
+);
+corridorTex.wrapS = THREE.ClampToEdgeWrapping;
+corridorTex.wrapT = THREE.ClampToEdgeWrapping;
+corridorTex.encoding = THREE.sRGBEncoding;
+
+// ── MATERIALS ──
+// Corridor surfaces — photo texture with dark tint
+function corridorMat(flipY, repeatU, repeatV) {
+  const t = corridorTex.clone();
+  t.needsUpdate = true;
+  t.flipY = flipY !== false;
+  t.repeat.set(repeatU || 1, repeatV || 1);
+  return new THREE.MeshStandardMaterial({
+    map: t,
+    roughness: 0.85,
+    metalness: 0.05,
+    color: new THREE.Color(0x8899aa), // slight tint so it doesn't blow out
+  });
+}
+
+const darkMat   = new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 0.9, metalness: 0.1 });
+const metalMat  = new THREE.MeshStandardMaterial({ color: 0x2a2d35, roughness: 0.3, metalness: 0.85 });
+const cageMat   = new THREE.MeshStandardMaterial({ color: 0x3a3a42, roughness: 0.4, metalness: 0.9 });
+const canvasMat = new THREE.MeshStandardMaterial({ color: 0x1a1a20, roughness: 0.95, metalness: 0 });
+const blueMat   = new THREE.MeshStandardMaterial({
+  color: BLUE, roughness: 0.4, metalness: 0.3,
+  emissive: BLUE_EMI, emissiveIntensity: 0.8
+});
+
+// ── LIGHTING ──
+scene.add(new THREE.AmbientLight(0x080810, 0.4));
+
+// Overhead cage spotlight
+const mainSpot = new THREE.SpotLight(0xaaccee, 4, 50, Math.PI / 5, 0.4, 1.2);
+mainSpot.position.set(0, 18, 0);
+mainSpot.target.position.set(0, 0, 0);
+scene.add(mainSpot);
+scene.add(mainSpot.target);
+
+// Blue corridor strip lights (left + right, matching photo)
+const stripL1 = new THREE.PointLight(BLUE, 2.5, 22);
+stripL1.position.set(-3.8, 3.2, 22);
+scene.add(stripL1);
+const stripL2 = new THREE.PointLight(BLUE, 2.0, 22);
+stripL2.position.set(-3.8, 3.2, 10);
+scene.add(stripL2);
+const stripR1 = new THREE.PointLight(BLUE, 2.5, 22);
+stripR1.position.set(3.8, 3.2, 22);
+scene.add(stripR1);
+const stripR2 = new THREE.PointLight(BLUE, 2.0, 22);
+stripR2.position.set(3.8, 3.2, 10);
+scene.add(stripR2);
+
+// Cage rim lights
+const rimL = new THREE.PointLight(BLUE, 1.2, 18);
+rimL.position.set(-6, 3, 0);
+scene.add(rimL);
+const rimR = new THREE.PointLight(BLUE, 1.2, 18);
+rimR.position.set(6, 3, 0);
+scene.add(rimR);
+
+// Forward fill — warm glow from arena end
+const arenaGlow = new THREE.PointLight(0x99bbdd, 2.5, 35);
+arenaGlow.position.set(0, 6, 2);
+scene.add(arenaGlow);
+
+// ── CORRIDOR TUNNEL (photo-textured box) ──
+const TUNNEL_LEN  = 40;   // z: from ~30 back to ~-10
+const TUNNEL_W    = 8.5;
+const TUNNEL_H    = 5.5;
+const TUNNEL_MID  = 14;   // centre z of tunnel
+
+// Floor
+const floorGeo = new THREE.PlaneGeometry(TUNNEL_W, TUNNEL_LEN);
+const floorMesh = new THREE.Mesh(floorGeo, corridorMat(true, 1, 3));
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.position.set(0, 0, TUNNEL_MID);
+scene.add(floorMesh);
+
+// Ceiling
+const ceilGeo = new THREE.PlaneGeometry(TUNNEL_W, TUNNEL_LEN);
+const ceilMesh = new THREE.Mesh(ceilGeo, corridorMat(false, 1, 3));
+ceilMesh.rotation.x = Math.PI / 2;
+ceilMesh.position.set(0, TUNNEL_H, TUNNEL_MID);
+scene.add(ceilMesh);
+
+// Left wall
+const wallLGeo = new THREE.PlaneGeometry(TUNNEL_LEN, TUNNEL_H);
+const wallLMesh = new THREE.Mesh(wallLGeo, corridorMat(true, 3, 1));
+wallLMesh.rotation.y = Math.PI / 2;
+wallLMesh.position.set(-TUNNEL_W / 2, TUNNEL_H / 2, TUNNEL_MID);
+scene.add(wallLMesh);
+
+// Right wall
+const wallRGeo = new THREE.PlaneGeometry(TUNNEL_LEN, TUNNEL_H);
+const wallRMesh = new THREE.Mesh(wallRGeo, corridorMat(true, 3, 1));
+wallRMesh.rotation.y = -Math.PI / 2;
+wallRMesh.position.set(TUNNEL_W / 2, TUNNEL_H / 2, TUNNEL_MID);
+scene.add(wallRMesh);
+
+// Back wall (behind start)
+const backGeo = new THREE.PlaneGeometry(TUNNEL_W, TUNNEL_H);
+const backMesh = new THREE.Mesh(backGeo, corridorMat(true, 1, 1));
+backMesh.position.set(0, TUNNEL_H / 2, 32);
+scene.add(backMesh);
+
+// Blue strip lights on walls (geometry to match the photo's neon strips)
+function makeStrip(x, y, z, rotY, len) {
+  const geo = new THREE.BoxGeometry(len, 0.06, 0.06);
+  const mat = new THREE.MeshStandardMaterial({
+    color: BLUE, emissive: BLUE_EMI, emissiveIntensity: 2.5,
+    roughness: 0.2, metalness: 0.1
+  });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  if (rotY) m.rotation.y = rotY;
+  return m;
+}
+
+// Top-left strip
+scene.add(makeStrip(-3.6, 4.2, 14, 0, 32));
+// Top-right strip
+scene.add(makeStrip(3.6, 4.2, 14, 0, 32));
+// Floor-left strip
+scene.add(makeStrip(-3.6, 0.08, 14, 0, 32));
+// Floor-right strip
+scene.add(makeStrip(3.6, 0.08, 14, 0, 32));
+
+// ── OCTAGON CAGE ──
+function buildCage() {
+  const g = new THREE.Group();
+  const radius = 7, height = 4, sides = 8;
+  const postGeo = new THREE.CylinderGeometry(0.06, 0.06, height, 8);
+
+  for (let i = 0; i < sides; i++) {
+    const a  = (i / sides) * Math.PI * 2 + Math.PI / 8;
+    const na = ((i + 1) / sides) * Math.PI * 2 + Math.PI / 8;
+    const x  = Math.cos(a) * radius,  z  = Math.sin(a) * radius;
+    const nx = Math.cos(na) * radius, nz = Math.sin(na) * radius;
+
+    // Corner post
+    const post = new THREE.Mesh(postGeo, metalMat);
+    post.position.set(x, height / 2, z);
+    g.add(post);
+
+    const pLen = Math.sqrt((nx-x)**2 + (nz-z)**2);
+    const pAng = Math.atan2(nz-z, nx-x);
+
+    // Horizontal rails
+    for (let r = 0; r < 3; r++) {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(pLen, 0.04, 0.04), metalMat);
+      rail.position.set((x+nx)/2, 0.5 + r*1.5, (z+nz)/2);
+      rail.rotation.y = -pAng;
+      g.add(rail);
+    }
+
+    // Vertical wires
+    for (let v = 0; v < 6; v++) {
+      const t = (v+1)/7;
+      const vert = new THREE.Mesh(new THREE.BoxGeometry(0.03, height-0.2, 0.03), cageMat);
+      vert.position.set(x+(nx-x)*t, height/2, z+(nz-z)*t);
+      g.add(vert);
+    }
+  }
+
+  // Top torus
+  const topRail = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.05, 8, sides), metalMat);
+  topRail.position.y = height;
+  topRail.rotation.x = Math.PI / 2;
+  g.add(topRail);
+
+  // Platform apron
+  const platform = new THREE.Mesh(new THREE.CylinderGeometry(radius+1.5, radius+1.5, 0.3, 8), darkMat);
+  platform.position.y = -0.15;
+  g.add(platform);
+
+  // Blue platform edge glow
+  const edgeGlow = new THREE.Mesh(
+    new THREE.TorusGeometry(radius+1.5, 0.04, 8, 8),
+    new THREE.MeshStandardMaterial({ color: BLUE, emissive: BLUE_EMI, emissiveIntensity: 1.5 })
+  );
+  edgeGlow.rotation.x = Math.PI / 2;
+  edgeGlow.position.y = 0.01;
+  g.add(edgeGlow);
+
+  // Canvas mat
+  const canv = new THREE.Mesh(new THREE.CircleGeometry(6.5, 8), canvasMat);
+  canv.rotation.x = -Math.PI / 2;
+  canv.position.y = 0.02;
+  g.add(canv);
+
+  // CLASH line on canvas
+  const clashLine = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.08), blueMat);
+  clashLine.rotation.x = -Math.PI / 2;
+  clashLine.position.y = 0.03;
+  g.add(clashLine);
+
+  return g;
+}
+
+const cage = buildCage();
+cage.position.set(0, 0.15, 0);
+scene.add(cage);
+
+// ── CROWD SILHOUETTES (behind cage) ──
+const crowdMat = new THREE.MeshStandardMaterial({ color: 0x050507, roughness: 1, metalness: 0 });
+for (let row = 0; row < 3; row++) {
+  const rowZ = -10 - row * 3;
+  const rowCount = 20 + row * 6;
+  for (let i = 0; i < rowCount; i++) {
+    const angle = (i / rowCount) * Math.PI * 2;
+    const r = 10 + row * 3;
+    const h = 1.5 + Math.random() * 0.8;
+    const person = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, h, 0.3),
+      crowdMat
+    );
+    person.position.set(Math.cos(angle)*r, h/2, rowZ + Math.sin(angle)*r*0.3);
+    scene.add(person);
+  }
+}
+
+// ── ARENA LIGHT RIGS ──
+for (let i = 0; i < 4; i++) {
+  const angle = (i / 4) * Math.PI * 2;
+  const rig = new THREE.Mesh(
+    new THREE.BoxGeometry(0.15, 0.15, 2),
+    new THREE.MeshStandardMaterial({ color: 0x222228 })
+  );
+  rig.position.set(Math.cos(angle)*12, 14, Math.sin(angle)*8 - 4);
+  rig.rotation.y = angle;
+  scene.add(rig);
+
+  const bulb = new THREE.PointLight(0xffffff, 1.5, 25);
+  bulb.position.set(Math.cos(angle)*11, 13, Math.sin(angle)*7 - 4);
+  scene.add(bulb);
+}
+
+// ── WAYPOINTS ──
+const waypoints = [
+  { pos: new THREE.Vector3(0, 1.7, 28), look: new THREE.Vector3(0, 1.5, 0),  label: "THE WALKOUT",  prompt: "CLICK TO STEP FORWARD" },
+  { pos: new THREE.Vector3(0, 1.7, 20), look: new THREE.Vector3(0, 1.5, 0),  label: "THE CORRIDOR", prompt: "KEEP MOVING" },
+  { pos: new THREE.Vector3(0, 1.7, 13), look: new THREE.Vector3(0, 1.5, 0),  label: "THE ARENA",    prompt: "FEEL THE HEAT" },
+  { pos: new THREE.Vector3(0, 1.7, 7),  look: new THREE.Vector3(0, 1.5, 0),  label: "THE CAGE",     prompt: "STEP INSIDE" },
+  { pos: new THREE.Vector3(0, 1.7, 2),  look: new THREE.Vector3(0, 1.4, -10),label: "THE OCTAGON",  prompt: "CENTRE YOURSELF" },
+  { pos: new THREE.Vector3(0, 2.2, -1), look: new THREE.Vector3(0, 1.0, -8), label: "",             prompt: "" },
+];
+
+let currentWP  = 0;
+let isAnimating = false;
+let isComplete  = false;
+
+// Camera lerp targets
+const camPos  = new THREE.Vector3().copy(waypoints[0].pos);
+const camLook = new THREE.Vector3().copy(waypoints[0].look);
+const tgtPos  = new THREE.Vector3().copy(waypoints[0].pos);
+const tgtLook = new THREE.Vector3().copy(waypoints[0].look);
+
+// ── ANIMATION LOOP ──
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  camPos.lerp(tgtPos, 0.04);
+  camLook.lerp(tgtLook, 0.04);
+  camera.position.copy(camPos);
+  camera.position.y += Math.sin(t * 0.5) * 0.004;
+  camera.lookAt(camLook);
+
+  // Pulse blue lights
+  const pulse = 1 + Math.sin(t * 1.2) * 0.25;
+  stripL1.intensity = 2.5 * pulse;
+  stripL2.intensity = 2.0 * pulse;
+  stripR1.intensity = 2.5 * pulse;
+  stripR2.intensity = 2.0 * pulse;
+  rimL.intensity = 1.2 * pulse;
+  rimR.intensity = 1.2 * pulse;
+  mainSpot.intensity = 4.0 + Math.sin(t * 0.4) * 0.5;
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// ── RESIZE ──
+window.addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ── ADVANCE WAYPOINT ──
+function advance() {
+  if (isAnimating || isComplete) return;
+  if (currentWP >= waypoints.length - 1) {
+    triggerComplete();
+    return;
+  }
+  currentWP++;
+  isAnimating = true;
+
+  const wp = waypoints[currentWP];
+  tgtPos.copy(wp.pos);
+  tgtLook.copy(wp.look);
+
+  document.getElementById("stage-label").textContent = wp.label;
+  document.getElementById("step-prompt").textContent = wp.prompt;
+
+  const pct = (currentWP / (waypoints.length - 1)) * 100;
+  document.getElementById("progress-bar").style.width = pct + "%";
+
+  setTimeout(() => { isAnimating = false; }, 900);
+
+  if (currentWP === waypoints.length - 1) {
+    setTimeout(triggerComplete, 1000);
+  }
+}
+
+function triggerComplete() {
+  isComplete = true;
+  document.getElementById("step-prompt").style.opacity = "0";
+  document.getElementById("stage-label").style.opacity = "0";
+  document.getElementById("progress-bar").style.width = "100%";
+  setTimeout(() => {
+    document.getElementById("site-overlay").classList.add("fade-in");
+    setTimeout(() => {
+      document.getElementById("cage-text").classList.add("show");
+      setTimeout(() => {
+        document.getElementById("enter-site-btn").classList.add("show");
+      }, 800);
+    }, 600);
+  }, 400);
+}
+
+function enterSite() {
+  window.location.href = "index.html";
+}
+
+// ── RIPPLE ──
+function spawnRipple(x, y) {
+  const r = document.createElement("div");
+  r.className = "ripple";
+  r.style.left = x + "px";
+  r.style.top  = y + "px";
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 700);
+}
+
+// ── INPUT ──
+document.addEventListener("click", (e) => {
+  if (e.target.id === "skip-btn" || e.target.id === "enter-site-btn") return;
+  spawnRipple(e.clientX, e.clientY);
+  advance();
+});
+
+document.getElementById("skip-btn").addEventListener("click", () => {
+  triggerComplete();
+});
+</script>
+</body>
+</html>

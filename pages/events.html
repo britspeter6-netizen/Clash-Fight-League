@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events — Clash Fight League</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <!-- Paystack inline script -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <img src="../assets/images/logo.png" alt="Clash Fight League" />
+    </div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="fighters.html">Fighters</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section class="page-header">
+    <h1>Events</h1>
+  </section>
+
+  <section class="event-detail">
+    <div class="container">
+      <h2 class="event-title">Clash Fight League — Event 1</h2>
+      <p class="event-meta">📅 Date TBA &nbsp;|&nbsp; 📍 Venue, City</p>
+      <p class="event-description">
+        The best amateur MMA talent goes head to head. One night. No excuses.
+      </p>
+
+      <!-- FIGHT CARD -->
+      <div class="fight-card">
+        <h3>Fight Card</h3>
+        <div class="matchup">
+          <span class="fighter red">Fighter A</span>
+          <span class="vs">VS</span>
+          <span class="fighter blue">Fighter B</span>
+        </div>
+        <!-- Add more matchups here -->
+      </div>
+
+      <!-- TICKET SECTION -->
+      <div class="ticket-section">
+        <h3>Get Your Tickets</h3>
+        <p>Secure your seat before they sell out.</p>
+        <input type="email" id="buyer-email" placeholder="Your email address" class="email-input" />
+
+        <div class="ticket-options">
+          <div class="ticket-tier">
+            <h4>General Admission</h4>
+            <p class="ticket-price">R150</p>
+            <button
+              class="btn-primary"
+              data-action="buy-ticket"
+              data-amount="150"
+              data-event="CFL Event 1 - General Admission"
+            >Buy Ticket</button>
+          </div>
+
+          <div class="ticket-tier">
+            <h4>VIP</h4>
+            <p class="ticket-price">R350</p>
+            <button
+              class="btn-primary"
+              data-action="buy-ticket"
+              data-amount="350"
+              data-event="CFL Event 1 - VIP"
+            >Buy VIP Ticket</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 Clash Fight League. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>
