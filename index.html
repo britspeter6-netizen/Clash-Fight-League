@@ -714,15 +714,16 @@ footer{background:rgba(13,14,16,0.88);backdrop-filter:blur(16px);border-top:1px 
     <div class="page-header-eyebrow">13 June 2026</div>
     <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,6rem);letter-spacing:4px;text-transform:uppercase;">LIVE STREAM</h1>
 
-    <!-- Main stream box — clicks to YouTube by default -->
-    <a id="stream-main-link" href="https://www.youtube.com/@clashfightleague" target="_blank" style="display:block;text-decoration:none;">
-      <div class="stream-box" style="cursor:pointer;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(59,143,196,0.5)'" onmouseleave="this.style.borderColor='rgba(59,143,196,0.25)'">
-        <div class="stream-status" id="stream-status-text">● PRE-EVENT</div>
-        <div class="stream-icon">📡</div>
-        <p style="color:var(--light);font-size:0.9rem;line-height:1.7;max-width:500px;margin:0 auto;font-weight:500;">Live stream details will be posted here on fight night. Follow <span style="color:var(--white);font-weight:700;">@clashfightleague</span> on Instagram for real-time updates.</p>
-        <p style="margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;letter-spacing:3px;color:var(--blue);text-transform:uppercase;font-weight:700;">CLICK TO WATCH LIVE ↗</p>
+    <!-- Main stream box — looping promo video until live -->
+    <div class="stream-box" style="padding:0;overflow:hidden;position:relative;">
+      <video autoplay muted loop playsinline style="width:100%;display:block;max-height:480px;object-fit:cover;">
+        <source src="../assets/images/Vid.mp4" type="video/mp4">
+        <source src="assets/images/Vid.mp4" type="video/mp4">
+      </video>
+      <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:2;">
+        <div class="stream-status" id="stream-status-text" style="background:rgba(8,8,9,0.75);backdrop-filter:blur(6px);padding:4px 16px;border:1px solid rgba(59,143,196,0.25);">● PRE-EVENT</div>
       </div>
-    </a>
+    </div>
 
     <!-- Platform sub-tabs -->
     <div style="margin-top:0;background:rgba(13,14,16,0.85);border:1px solid rgba(59,143,196,0.15);border-top:none;display:flex;overflow:hidden;">
