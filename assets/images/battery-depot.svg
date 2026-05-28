@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160" width="520" height="160">
+  <defs>
+    <filter id="bshadow">
+      <feDropShadow dx="3" dy="3" stdDeviation="2" flood-color="#000" flood-opacity="1"/>
+    </filter>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d8c2d"/>
+      <stop offset="100%" style="stop-color:#1a5c1a"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE033"/>
+      <stop offset="50%" style="stop-color:#FFB800"/>
+      <stop offset="100%" style="stop-color:#E08800"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Green background -->
+  <rect width="520" height="160" fill="url(#bgGrad)" rx="4"/>
+  <!-- Border line divider -->
+  <line x1="180" y1="0" x2="180" y2="160" stroke="rgba(0,0,0,0.3)" stroke-width="2"/>
+  <line x1="182" y1="0" x2="182" y2="160" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+  <!-- ===== LEFT SIDE: BATTERY text ===== -->
+  <!-- BATTERY -->
+  <text x="88" y="74"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="48"
+    text-anchor="middle"
+    fill="none"
+    stroke="#000"
+    stroke-width="8"
+    filter="url(#bshadow)">BATTERY</text>
+  <text x="88" y="74"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="48"
+    text-anchor="middle"
+    fill="none"
+    stroke="#8B5200"
+    stroke-width="5">BATTERY</text>
+  <text x="88" y="74"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="48"
+    text-anchor="middle"
+    fill="url(#textGrad)">BATTERY</text>
+
+  <!-- DEPOT -->
+  <text x="88" y="128"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="52"
+    text-anchor="middle"
+    fill="none"
+    stroke="#000"
+    stroke-width="8"
+    filter="url(#bshadow)">DEPOT</text>
+  <text x="88" y="128"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="52"
+    text-anchor="middle"
+    fill="none"
+    stroke="#8B5200"
+    stroke-width="5">DEPOT</text>
+  <text x="88" y="128"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="52"
+    text-anchor="middle"
+    fill="url(#textGrad)">DEPOT</text>
+
+  <!-- ===== CENTRE: Battery + lightning bolt icon ===== -->
+  <!-- Battery body -->
+  <rect x="213" y="42" width="94" height="76" rx="6" fill="#222" stroke="#fff" stroke-width="3"/>
+  <!-- Battery terminal (top nub) -->
+  <rect x="239" y="34" width="42" height="12" rx="3" fill="#222" stroke="#fff" stroke-width="2"/>
+  <!-- Battery fill level -->
+  <rect x="219" y="48" width="82" height="64" rx="3" fill="#FFB800" opacity="0.25"/>
+  <!-- Lightning bolt -->
+  <polygon points="268,52 252,90 264,90 252,128 284,82 270,82 284,52"
+    fill="#FFB800" stroke="#000" stroke-width="2" filter="url(#bshadow)"/>
+  <!-- Spark lines -->
+  <line x1="204" y1="55" x2="214" y2="62" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="200" y1="80" x2="212" y2="80" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="204" y1="105" x2="214" y2="98" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="316" y1="55" x2="306" y2="62" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="320" y1="80" x2="308" y2="80" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="316" y1="105" x2="306" y2="98" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ===== RIGHT SIDE: BATTERY + DEPOT + contact ===== -->
+  <!-- Divider line right -->
+  <line x1="340" y1="0" x2="340" y2="160" stroke="rgba(0,0,0,0.3)" stroke-width="2"/>
+  <line x1="342" y1="0" x2="342" y2="160" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+  <text x="430" y="74"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="48"
+    text-anchor="middle"
+    fill="none"
+    stroke="#000"
+    stroke-width="8"
+    filter="url(#bshadow)">BATTERY</text>
+  <text x="430" y="74"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="48"
+    text-anchor="middle"
+    fill="none"
+    stroke="#8B5200"
+    stroke-width="5">BATTERY</text>
+  <text x="430" y="74"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="48"
+    text-anchor="middle"
+    fill="url(#textGrad)">BATTERY</text>
+
+  <text x="430" y="128"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="52"
+    text-anchor="middle"
+    fill="none"
+    stroke="#000"
+    stroke-width="8"
+    filter="url(#bshadow)">DEPOT</text>
+  <text x="430" y="128"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="52"
+    text-anchor="middle"
+    fill="none"
+    stroke="#8B5200"
+    stroke-width="5">DEPOT</text>
+  <text x="430" y="128"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="52"
+    text-anchor="middle"
+    fill="url(#textGrad)">DEPOT</text>
+</svg>
