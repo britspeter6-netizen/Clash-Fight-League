@@ -1316,9 +1316,9 @@ document.addEventListener('click', e=>{
 
 function setStreamPlatform(platform) {
   var links = {
-    yt: 'https://www.youtube.com/@clashfightleague',
+    yt: 'https://www.youtube.com/channel/UCrgnbpnC6DXkAJPbnuOc6zg',
     tw: 'https://www.twitch.tv/clashfightleague',
-    ig: 'https://www.instagram.com/clashfightleague/'
+    ig: 'https://www.instagram.com/clashfightleague?igsh=MXQ1d21pMDkzMjg2&utm_source=qrks'
   };
   var tabs = ['yt','tw','ig'];
   tabs.forEach(function(t) {
@@ -1333,8 +1333,7 @@ function setStreamPlatform(platform) {
       }
     }
   });
-  var mainLink = document.getElementById('stream-main-link');
-  if (mainLink) mainLink.href = links[platform];
+  window.open(links[platform], '_blank');
 }
 </script>
 </body>
